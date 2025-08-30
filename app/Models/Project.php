@@ -8,7 +8,9 @@ class Project extends Model
 {
     protected $fillable = [
         'name',
-        'description'
+        'description',
+        'start_date',
+        'deadline'
     ];
 
     public function issues(){
