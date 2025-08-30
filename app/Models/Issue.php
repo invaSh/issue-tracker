@@ -12,17 +12,21 @@ class Issue extends Model
         'status',
         'priority',
         'due_date',
+        'project_id',
     ];
 
-    public function project(){
+    public function project()
+    {
         return $this->belongsTo(Project::class);
     }
 
-    public function comments(){
+    public function comments()
+    {
         return $this->hasMany(Comment::class);
     }
 
-    public function tags(){
+    public function tags()
+    {
         return $this->belongsToMany(Tag::class);
     }
 }

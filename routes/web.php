@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\IssueController;
 use App\Http\Controllers\ProjectController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,3 +15,11 @@ Route::get('/projects/edit/{project}', [ProjectController::class, 'edit'])->name
 Route::put('/projects/update/{project}', [ProjectController::class, 'update'])->name('projects.update');
 Route::delete('/projects/destroy/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
 Route::get('/issues', [ProjectController::class, 'index'])->name('issues.index');
+
+Route::get('/issues', [IssueController::class, 'index'])->name('issues.index');
+Route::get('/issues/create', [IssueController::class, 'create'])->name('issues.create');
+Route::post('/issues/store', [IssueController::class, 'store'])->name('issues.store');
+Route::get('/issues/{issue}', [IssueController::class, 'show'])->name('issues.show');
+Route::get('/issues/edit/{issue}', [IssueController::class, 'edit'])->name('issues.edit');
+Route::put('/issues/update/{issue}', [IssueController::class, 'update'])->name('issues.update');
+Route::delete('/issues/destroy/{issue}', [IssueController::class, 'destroy'])->name('issues.destroy');

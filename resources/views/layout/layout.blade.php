@@ -31,7 +31,7 @@
 
                 <div class="flex space-x-6">
                     <a href="{{ route('projects.index') }}" class="hover:text-white text-gray-400">Projects</a>
-                    <a class="hover:text-white text-gray-400">Issues</a>
+                    <a href="{{ route(name: 'issues.index') }}" class="hover:text-white text-gray-400">Issues</a>
                     <a class="hover:text-white text-gray-400">Tags</a>
                 </div>
             </div>
