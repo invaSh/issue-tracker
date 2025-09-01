@@ -14,7 +14,21 @@
         </div>
     @endif
 
-    <div class="max-w-4xl mx-auto bg-gray-800 text-gray-100 rounded-xl shadow-lg p-6">
+    <div class="max-w-4xl mx-auto  text-gray-10 p-6">
+        <div class="flex justify-between mb-3">
+            <h3 class="text-gray-300">Projects</h3>
+            <a href="{{ route('projects.create') }}"
+                class="rounded-2xl transition-all duration-300 ease-in-out px-2.5 py-1 text-xs bg-gray-600 hover:bg-gray-500 text-white flex gap-1 items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-plus-icon lucide-plus">
+                    <path d="M5 12h14" />
+                    <path d="M12 5v14" />
+                </svg>
+                Create Project
+            </a>
+
+        </div>
         @if ($projects->isEmpty())
             <p class="text-gray-400">No projects found. Add a new project to get started!</p>
         @else

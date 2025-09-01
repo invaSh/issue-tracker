@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -23,3 +24,9 @@ Route::get('/issues/{issue}', [IssueController::class, 'show'])->name('issues.sh
 Route::get('/issues/edit/{issue}', [IssueController::class, 'edit'])->name('issues.edit');
 Route::put('/issues/update/{issue}', [IssueController::class, 'update'])->name('issues.update');
 Route::delete('/issues/destroy/{issue}', [IssueController::class, 'destroy'])->name('issues.destroy');
+
+Route::get('/tags', [TagController::class, 'index'])->name('tags.index');  
+Route::get('/tags/create', [TagController::class, 'create'])->name('tags.create');  
+Route::post('/tags', [TagController::class, 'store'])->name('tags.store'); 
+Route::post('/tags/{issue}/attach-tag', [TagController::class, 'attachTag'])->name('tags.attachTag');
+Route::post('/tags/{issue}/detach-tag', [TagController::class, 'detachTag'])->name('tags.detachTag');

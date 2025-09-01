@@ -1,4 +1,3 @@
-
 @extends('layout.layout')
 
 @section('title', 'Issue Detail')
@@ -24,7 +23,8 @@
                     <span class="pl-1">Edit</span>
                 </a>
 
-                <form action="{{ route('issues.destroy', $issue->id)}}" method="POST" onsubmit="return confirm('Are you sure you want to delete this project?');">
+                <form action="{{ route('issues.destroy', $issue->id) }}" method="POST"
+                    onsubmit="return confirm('Are you sure you want to delete this project?');">
                     @csrf
                     @method('DELETE')
                     <button type="submit"
@@ -46,14 +46,30 @@
         <p class="mb-4"><strong>Description:</strong> {{ $issue->description ?? '-' }}</p>
 
         <div class="mb-4">
-            <h2 class="font-bold text-lg mb-2">Tags</h2>
-            <div class="flex flex-wrap gap-2">
-                @if ($issue->tags->isEmpty())
-                    <span class="text-gray-400 text-xs">No tags assigned</span>
-                @else
+            <div class="flex justify-between items-center">
+                <h2 class="font-bold text-lg mb-2">Tags</h2>
+                <h3 id="toggleTags"
+                    class="text-xs border px-2 py-0.5 rounded-full hover:bg-gray-100 hover:text-gray-700 cursor-pointer transition-all ease-in duration-150">
+                    + Add tag
+                </h3>
+            </div>
+
+            <div id="staticTags" class="flex flex-wrap gap-2 p-2 rounded min-h-[40px]">
+                @if (!$issue->tags->isEmpty())
                     @foreach ($issue->tags as $tag)
-                        <span class="px-2 py-1 bg-blue-600 rounded-lg text-xs">{{ $tag->name }}</span>
+                        <div id="tag"
+                            class="flex items-center space-x-2 px-3 py-1 rounded-full detach-tag text-xs font-medium cursor-pointer group
+            transition-transform duration-200 ease-in-out transform hover:scale-105"
+                            style="background-color: {{ $tag->color ?? '#374151' }}" data-id="{{ $tag->id }}">
+                            <span>{{ $tag->name }}</span>
+                            <button
+                                class="ml-1 text-gray-100 group-hover:text-red-600 font-bold transition-colors duration-200">&times;</button>
+                        </div>
                     @endforeach
+                @else
+                    <span class="instruction text-gray-400 text-xs italic">
+                        No tags assigned. Click "Add tag" to add.
+                    </span>
                 @endif
             </div>
         </div>
@@ -64,11 +80,144 @@
                 @if ($issue->comments->isEmpty())
                     <span class="text-gray-400 text-xs">No comments assigned</span>
                 @else
-                    @foreach ($issue->comments ?? [] as $comment)
+                    @foreach ($issue->comments as $comment)
                         <li class="bg-gray-700 rounded-lg p-2">{{ $comment->content }}</li>
                     @endforeach
                 @endif
             </ul>
         </div>
     </div>
+
+    <div id="tagModal" class="fixed inset-0 backdrop-blur-xs flex items-center justify-center hidden">
+        <div class="bg-gray-600 text-gray-100 rounded-xl w-96 p-6 relative text-center">
+            <h2 class="text-lg font-bold mb-4">Add Tag</h2>
+            <button id="closeTagModal"
+                class="absolute top-3 right-3 text-gray-400 hover:text-gray-200 cursor-pointer">&times;</button>
+
+            <div id="existingTagForm">
+                <select id="existingTags"
+                    class="w-full h-8 rounded bg-gray-500/20 px-2 text-sm outline-none border-none focus:outline-none focus:ring-0 focus:border-none">
+                    <option value="" disabled selected>Select a tag</option>
+                    @foreach (\App\Models\Tag::all() as $tag)
+                        <option value="{{ $tag->id }}" class="text-gray-800">{{ $tag->name }}</option>
+                    @endforeach
+                </select>
+                <span id="existingTagError" class="text-red-400 text-xs hidden mt-1"></span>
+                <button id="attachTag"
+                    class="w-full h-8 text-sm font-medium rounded bg-gray-800/30 hover:shadow transition mt-3">
+                    Attach
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tagModal = document.getElementById('tagModal');
+        const toggleTags = document.getElementById('toggleTags');
+        const closeTagModal = document.getElementById('closeTagModal');
+
+        toggleTags.addEventListener('click', () => tagModal.classList.remove('hidden'));
+        closeTagModal.addEventListener('click', () => tagModal.classList.add('hidden'));
+
+        document.getElementById('attachTag').addEventListener('click', async () => {
+            const select = document.getElementById('existingTags');
+            const errorSpan = document.getElementById('existingTagError');
+
+            errorSpan.textContent = '';
+            errorSpan.classList.add('hidden');
+
+            const tagId = select.value;
+            if (!tagId) {
+                errorSpan.textContent = 'Select a tag';
+                errorSpan.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const res = await fetch(`{{ url('/tags/' . $issue->id . '/attach-tag') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        tag_id: tagId
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    const tagContainer = document.getElementById('staticTags');
+                    const instruction = tagContainer.querySelector('.instruction');
+                    if (instruction) instruction.remove();
+
+                    const div = document.createElement('div');
+                    div.className = "flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-medium";
+                    div.style.backgroundColor = data.color || '#374151';
+                    div.dataset.id = data.id || tagId;
+                    div.innerHTML = `
+                <span>${data.name}</span>
+                <button class="ml-1 text-gray-100 hover:text-red-400 text-xs font-bold detach-tag">&times;</button>
+            `;
+                    tagContainer.appendChild(div);
+
+                    select.value = '';
+                    tagModal.classList.add('hidden');
+                } else {
+                    errorSpan.textContent = data.message || 'Error attaching tag';
+                    errorSpan.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                errorSpan.textContent = 'Network error or server issue';
+                errorSpan.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('staticTags').addEventListener('click', async (e) => {
+            const tagDiv = e.target.closest('div[data-id]');
+            if (!tagDiv) return;
+
+            const tagId = tagDiv.dataset.id;
+            const button = tagDiv.querySelector('button');
+
+            const originalHtml = button.innerHTML;
+
+            button.innerHTML = `
+                <svg class="animate-spin h-4 w-4 text-gray-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v2a6 6 0 00-6 6H4z"></path>
+                </svg>
+            `;
+
+            try {
+                const res = await fetch(`{{ url('/tags/' . $issue->id . '/detach-tag') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        tag_id: tagId
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    tagDiv.remove();
+                } else {
+                    button.innerHTML = originalHtml;
+                    alert(data.message || 'Error detaching tag');
+                }
+            } catch (err) {
+                console.error(err);
+                button.innerHTML = originalHtml;
+                alert('Error detaching tag');
+            }
+        });
+    </script>
 @endsection
