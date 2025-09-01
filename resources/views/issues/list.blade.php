@@ -81,6 +81,7 @@
                         <th class="px-3 py-2">Status</th>
                         <th class="px-3 py-2">Priority</th>
                         <th class="px-3 py-2">Due Date</th>
+                        <th class="px-3 py-2">Tags</th>
                         <th class="px-3 py-2">Profile</th>
                     </tr>
                 </thead>
@@ -92,6 +93,31 @@
                             <td class="px-3 py-2">{{ ucfirst($issue->status) }}</td>
                             <td class="px-3 py-2">{{ ucfirst($issue->priority) }}</td>
                             <td class="px-3 py-2">{{ \Carbon\Carbon::parse($issue->due_date)->format('M d, Y') }}</td>
+                            <td class="px-3 py-2 space-x-1">
+                                @php
+                                    $tagsToShow = $issue->tags->take(2);
+                                    $extraCount = $issue->tags->count() - $tagsToShow->count();
+                                @endphp
+
+                                @if ($issue->tags->isEmpty())
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium text-gray-200 bg-gray-700">
+                                        N/A
+                                    </span>
+                                @else
+                                    @foreach ($tagsToShow as $tag)
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium text-gray-200"
+                                            style="background-color: {{ $tag->color ?? '#374151' }};">
+                                            {{ $tag->name }}
+                                        </span>
+                                    @endforeach
+
+                                    @if ($extraCount > 0)
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium text-gray-200 bg-gray-700">
+                                            +{{ $extraCount }} more
+                                        </span>
+                                    @endif
+                                @endif
+                            </td>
                             <td class="px-3 py-2 space-x-1">
                                 <a href="{{ route('issues.show', $issue->id) }}">
                                     <span
