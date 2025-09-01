@@ -74,19 +74,19 @@ class IssueController extends Controller
 
     public function show(Issue $issue)
     {
-        // Use eager loading to avoid N+1 queries
         $issue->load([
             'tags',
-            'comments',
-            'project' // Add project if you need it
+            'comments' => function ($query) {
+                $query->orderBy('created_at', 'desc'); 
+            },
+            'project'
         ]);
 
-        // Get all tags for the drag-and-drop functionality
         $allTags = Tag::all();
 
         return view('issues.show', compact('issue', 'allTags'));
     }
-    
+
     /**
      * Show the form for editing the specified resource.
      */
