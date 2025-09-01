@@ -48,9 +48,11 @@
                     <select name="tag"
                         class="bg-gray-700 text-gray-100 border border-gray-600 rounded-2xl px-2 py-0.5 text-xs">
                         <option value="" disabled selected>Tag</option>
-                        <option value="bug" {{ request('tag') == 'bug' ? 'selected' : '' }}>Bug</option>
-                        <option value="feature" {{ request('tag') == 'feature' ? 'selected' : '' }}>Feature</option>
-                        <option value="task" {{ request('tag') == 'task' ? 'selected' : '' }}>Task</option>
+                        @foreach ($tags as $tag)
+                            <option value="{{ $tag->name }}" {{ request('tag') == $tag->name ? 'selected' : '' }}>
+                                {{ ucfirst($tag->name) }}
+                            </option>
+                        @endforeach
                     </select>
 
                     <button type="submit"
@@ -68,7 +70,7 @@
 
         </div>
 
-        @if ($issues->isEmpty())
+        @if (empty($issues))
             <p class="text-gray-400 text-sm">No issues. Add a new issue to get started.</p>
         @else
             <table class="w-full text-left border border-gray-600 rounded overflow-hidden text-sm">

@@ -31,8 +31,9 @@ class IssueController extends Controller
         }
 
         $issues = $query->get();
+        $tags = Tag::all();
 
-        return view('issues.list', compact('issues'));
+        return view('issues.list', compact('issues', 'tags'));
     }
 
 
@@ -126,6 +127,7 @@ class IssueController extends Controller
      */
     public function destroy(Issue $issue)
     {
+        $issue->tags()->detach();
         $issue->delete();
         return redirect()->route('issues.index')
             ->with('success', 'Issue deleted successfully.');
