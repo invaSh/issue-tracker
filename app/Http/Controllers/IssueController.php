@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Issue;
 use App\Models\Project;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 
 class IssueController extends Controller
@@ -25,13 +26,14 @@ class IssueController extends Controller
 
         if ($request->tag) {
             $query->whereHas('tags', function ($q) use ($request) {
-                $q->where('name', $request->tag); 
+                $q->where('name', $request->tag);
             });
         }
 
         $issues = $query->get();
+        $tags = Tag::all();
 
-        return view('issues.list', compact('issues'));
+        return view('issues.list', compact('issues', 'tags'));
     }
 
 
@@ -70,14 +72,21 @@ class IssueController extends Controller
             ->with('success', 'Issue created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Issue $issue)
     {
-        return view('issues.show', compact('issue'));
-    }
+        // Use eager loading to avoid N+1 queries
+        $issue->load([
+            'tags',
+            'comments',
+            'project' // Add project if you need it
+        ]);
 
+        // Get all tags for the drag-and-drop functionality
+        $allTags = Tag::all();
+
+        return view('issues.show', compact('issue', 'allTags'));
+    }
+    
     /**
      * Show the form for editing the specified resource.
      */
@@ -118,6 +127,7 @@ class IssueController extends Controller
      */
     public function destroy(Issue $issue)
     {
+        $issue->tags()->detach();
         $issue->delete();
         return redirect()->route('issues.index')
             ->with('success', 'Issue deleted successfully.');

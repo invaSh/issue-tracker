@@ -48,9 +48,11 @@
                     <select name="tag"
                         class="bg-gray-700 text-gray-100 border border-gray-600 rounded-2xl px-2 py-0.5 text-xs">
                         <option value="" disabled selected>Tag</option>
-                        <option value="bug" {{ request('tag') == 'bug' ? 'selected' : '' }}>Bug</option>
-                        <option value="feature" {{ request('tag') == 'feature' ? 'selected' : '' }}>Feature</option>
-                        <option value="task" {{ request('tag') == 'task' ? 'selected' : '' }}>Task</option>
+                        @foreach ($tags as $tag)
+                            <option value="{{ $tag->name }}" {{ request('tag') == $tag->name ? 'selected' : '' }}>
+                                {{ ucfirst($tag->name) }}
+                            </option>
+                        @endforeach
                     </select>
 
                     <button type="submit"
@@ -68,7 +70,7 @@
 
         </div>
 
-        @if ($issues->isEmpty())
+        @if (empty($issues))
             <p class="text-gray-400 text-sm">No issues. Add a new issue to get started.</p>
         @else
             <table class="w-full text-left border border-gray-600 rounded overflow-hidden text-sm">
@@ -79,6 +81,7 @@
                         <th class="px-3 py-2">Status</th>
                         <th class="px-3 py-2">Priority</th>
                         <th class="px-3 py-2">Due Date</th>
+                        <th class="px-3 py-2">Tags</th>
                         <th class="px-3 py-2">Profile</th>
                     </tr>
                 </thead>
@@ -90,6 +93,31 @@
                             <td class="px-3 py-2">{{ ucfirst($issue->status) }}</td>
                             <td class="px-3 py-2">{{ ucfirst($issue->priority) }}</td>
                             <td class="px-3 py-2">{{ \Carbon\Carbon::parse($issue->due_date)->format('M d, Y') }}</td>
+                            <td class="px-3 py-2 space-x-1">
+                                @php
+                                    $tagsToShow = $issue->tags->take(2);
+                                    $extraCount = $issue->tags->count() - $tagsToShow->count();
+                                @endphp
+
+                                @if ($issue->tags->isEmpty())
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium text-gray-200 bg-gray-700">
+                                        N/A
+                                    </span>
+                                @else
+                                    @foreach ($tagsToShow as $tag)
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium text-gray-200"
+                                            style="background-color: {{ $tag->color ?? '#374151' }};">
+                                            {{ $tag->name }}
+                                        </span>
+                                    @endforeach
+
+                                    @if ($extraCount > 0)
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium text-gray-200 bg-gray-700">
+                                            +{{ $extraCount }} more
+                                        </span>
+                                    @endif
+                                @endif
+                            </td>
                             <td class="px-3 py-2 space-x-1">
                                 <a href="{{ route('issues.show', $issue->id) }}">
                                     <span
