@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreIssueRequest;
+use App\Http\Requests\UpdateIssueRequest;
 use App\Models\Issue;
 use App\Models\Project;
 use App\Models\Tag;
@@ -14,7 +16,7 @@ class IssueController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Issue::with(['tags','comments'])->latest();
+        $query = Issue::with(['tags', 'comments'])->latest();
 
         if ($request->status) {
             $query->where('status', $request->status);
@@ -49,24 +51,10 @@ class IssueController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreIssueRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'status' => 'required|in:open,in_progress,closed',
-            'priority' => 'required|in:low,medium,high',
-            'due_date' => 'nullable|date|after_or_equal:today',
-            'project_id' => 'required|exists:projects,id',
-        ], [
-            'title.required' => 'Project title cannot be empty!',
-            'description.required' => 'Description cannot be empty!',
-            'status.required' => 'status cannot be empty!',
-            'due_date.required' => 'Due Date date cannot be empty!',
-            'project_id.required' => 'Project cannot be empty!',
-        ]);
 
-        Issue::create($validated);
+        Issue::create($request->validated());
 
         return redirect()->route('issues.index')
             ->with('success', 'Issue created successfully.');
@@ -77,7 +65,7 @@ class IssueController extends Controller
         $issue->load([
             'tags',
             'comments' => function ($query) {
-                $query->orderBy('created_at', 'desc'); 
+                $query->orderBy('created_at', 'desc');
             },
             'project'
         ]);
@@ -99,24 +87,9 @@ class IssueController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Issue $issue)
+    public function update(UpdateIssueRequest $request, Issue $issue)
     {
-        $validated = $request->validate([
-            'title' => 'required',
-            'description' => 'required',
-            'status' => 'required|in:open,in_progress,closed',
-            'priority' => 'required|in:low,medium,high',
-            'due_date' => 'nullable|date|after_or_equal:today',
-            'project_id' => 'required|exists:projects,id',
-        ], [
-            'title.required' => 'Project title cannot be empty!',
-            'description.required' => 'Description cannot be empty!',
-            'status.required' => 'status cannot be empty!',
-            'due_date.required' => 'Due Date date cannot be empty!',
-            'project_id.required' => 'Project cannot be empty!',
-        ]);
-
-        $issue->update($validated);
+        $issue->update($request->validated());
 
         return redirect()->route('issues.show', $issue->id)
             ->with('success', 'Issue updated successfully.');
@@ -128,6 +101,7 @@ class IssueController extends Controller
     public function destroy(Issue $issue)
     {
         $issue->tags()->detach();
+        $issue->comments()->delete();
         $issue->delete();
         return redirect()->route('issues.index')
             ->with('success', 'Issue deleted successfully.');

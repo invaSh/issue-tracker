@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
 use Illuminate\Http\Request;
 
@@ -29,26 +31,9 @@ class ProjectController extends Controller
      * Store a newly created resource in storage.
      */
 
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'start_date' => 'required|date',
-            'deadline' => 'required|date|after_or_equal:start_date',
-        ], [
-            'name.required' => 'Project name cannot be empty!',
-            'description.required' => 'Description cannot be empty!',
-            'start_date.required' => 'Start date cannot be empty!',
-            'deadline.required' => 'Deadline date cannot be empty!',
-        ]);
-
-        $project = Project::create([
-            'name' => $validated['name'],
-            'description' => $validated['description'],
-            'start_date' => $validated['start_date'],
-            'deadline' => $validated['deadline'],
-        ]);
+        $project = Project::create($request->validated());
 
         return redirect()->route('projects.index')
             ->with('success', 'Project created successfully!');
@@ -77,16 +62,9 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Project $project)
+    public function update(UpdateProjectRequest $request, Project $project)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'start_date' => 'required|date',
-            'deadline' => 'required|date|after_or_equal:start_date',
-            'description' => 'nullable|string',
-        ]);
-
-        $project->update($validated);
+        $project->update($request->validated());
 
         return redirect()->route('projects.show', $project->id)
             ->with('success', 'Project updated successfully.');

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AttachTagRequest;
+use App\Http\Requests\StoreTagRequest;
 use App\Models\Issue;
 use App\Models\Tag;
 use Illuminate\Http\Request;
@@ -28,30 +30,16 @@ class TagController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTagRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:tags,name',
-            'color' => 'nullable',
-        ], [
-            'name.required' => 'The tag name cannot be empty!'
-        ]);
-
-        Tag::create($validated);
+        Tag::create($request->validated());
 
         return redirect()->route('tags.index')->with('success', 'Tag created successfully.');
     }
 
 
-    public function attachTag(Request $request, Issue $issue)
+    public function attachTag(AttachTagRequest $request, Issue $issue)
     {
-        $request->validate([
-            'tag_id' => 'required|exists:tags,id',
-        ], [
-            'tag_id.required' => 'The tag cannot be empty!',
-            'tag_id.exists' => 'The selected tag does not exist',
-        ]);
-
         $tag = Tag::findOrFail($request->tag_id);
 
         if ($issue->tags()->where('tag_id', $tag->id)->exists()) {
@@ -70,6 +58,7 @@ class TagController extends Controller
             'color' => $tag->color ?? '#374151',
         ]);
     }
+
 
     public function detachTag(Request $request, Issue $issue)
     {
