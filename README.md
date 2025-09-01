@@ -20,43 +20,46 @@ DB_PASSWORD=your_mysql_password
 ### 2. Run migrations
 Run the migrations to setup all the tables:
 
+```dotenv
 php artisan migrate
-
+```
 
 ### 3. Run seeders
 Run the seeding files to add sample data:
 
+```dotenv
 php artisan db:seed --class=ProjectSeeder
 php artisan db:seed --class=IssueSeeder
 php artisan db:seed --class=TagSeeder
+```
 
 
 ### 4. Run the app
-
-php artisan serve
-
+```dotenv
+###### php artisan serve
+```
 
 ## Requirements
 
 ### Projects
-List view - /projects page
-Profile view - /projects/{id}
-Create view - /projects/create page
-Edit view - /projects/edit/{id} page
-Delete -  /projects/{id} page
+###### -  List view - /projects page
+###### - Profile view - /projects/{id}
+###### - Create view - /projects/create page
+###### - Edit view - /projects/edit/{id} page
+###### - Delete -  /projects/{id} page
 
 ### Issues
-List view - /issues page
-Profile view - /issues/{id}
-Create view - /issues/create page
-Edit view - /issues/edit/{id} page
-Delete -  /issues/{id} page
+###### - List view - /issues page
+###### - Profile view - /issues/{id}
+###### - Create view - /issues/create page
+###### - Edit view - /issues/edit/{id} page
+###### - Delete -  /issues/{id} page
 
 ### Tags
-List view - /tags page
-Create view - /tags/create page
-Attach/dettach - /issues/{id}
+###### - List view - /tags page
+###### - Create view - /tags/create page
+###### - Attach/detach - /issues/{id}
 
 ### Comments
-List - /issues/{id} page
+###### - List - /issues/{id} page
 
