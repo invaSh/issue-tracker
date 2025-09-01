@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TagController;
@@ -30,3 +31,5 @@ Route::get('/tags/create', [TagController::class, 'create'])->name('tags.create'
 Route::post('/tags', [TagController::class, 'store'])->name('tags.store'); 
 Route::post('/tags/{issue}/attach-tag', [TagController::class, 'attachTag'])->name('tags.attachTag');
 Route::post('/tags/{issue}/detach-tag', [TagController::class, 'detachTag'])->name('tags.detachTag');
+
+Route::post('/comments/{issue}/comment', [CommentController::class, 'comment'])->name('comments.comment');

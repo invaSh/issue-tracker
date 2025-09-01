@@ -8,6 +8,7 @@ class Comment extends Model
 {
     protected $fillable = [
         'body',
+        'author_name'
     ];
 
     public function issue(){

@@ -74,18 +74,63 @@
             </div>
         </div>
 
-        <div>
-            <h2 class="font-bold text-lg mb-2">Comments</h2>
-            <ul class="space-y-2">
+
+
+        <div class="mt-6">
+            <h2 class="font-bold text-lg mb-4">Comments ({{ $issue->comments->count() }})</h2>
+
+            <div class="bg-gray-750 rounded-lg p-4 mb-4 border border-gray-600">
+                <div class="flex space-x-3">
+                    <div
+                        class="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                        {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                    </div>
+                    <div class="flex-1">
+                        <div id="authorError" class="text-red-400 text-xs mb-1 hidden"></div>
+                        <input type="text" id="authorName" placeholder="Your name"
+                            class="w-full px-3 py-2 mb-2 bg-gray-700 text-gray-100 rounded-lg border border-gray-600 focus:border-blue-500 outline-none">
+
+                        <div id="commentError" class="text-red-400 text-xs mb-1 hidden"></div>
+                        <textarea id="newComment" placeholder="Write a comment..." rows="2"
+                            class="w-full px-3 py-2 bg-gray-700 text-gray-100 rounded-lg border border-gray-600 focus:border-blue-500 outline-none resize-none"></textarea>
+
+                        <div class="flex justify-end mt-2 space-x-2">
+                            <button id="addComment"
+                                class="px-4 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-lg">Comment</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-3" id="commentsList">
                 @if ($issue->comments->isEmpty())
-                    <span class="text-gray-400 text-xs">No comments assigned</span>
+                    <div class="text-center py-6 text-gray-400">
+                        <p class="text-sm">No comments yet. Be the first to comment!</p>
+                    </div>
                 @else
                     @foreach ($issue->comments as $comment)
-                        <li class="bg-gray-700 rounded-lg p-2">{{ $comment->content }}</li>
+                        <div class="bg-gray-750 rounded-lg p-4 border border-gray-600">
+                            <div class="flex space-x-3">
+                                <div
+                                    class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                                    {{ substr($comment->author_name ?? 'U', 0, 1) }}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <span
+                                            class="font-medium text-gray-200">{{ $comment->author_name ?? 'Anonymous' }}</span>
+                                        <span
+                                            class="text-gray-400 text-xs">{{ $comment->created_at->diffForHumans() }}</span>
+                                    </div>
+                                    <div class="text-gray-100 text-sm">{{ $comment->body }}</div>
+                                </div>
+                            </div>
+                        </div>
                     @endforeach
                 @endif
-            </ul>
+            </div>
         </div>
+
     </div>
 
     <div id="tagModal" class="fixed inset-0 backdrop-blur-xs flex items-center justify-center hidden">
@@ -110,7 +155,6 @@
             </div>
         </div>
     </div>
-
     <script>
         const tagModal = document.getElementById('tagModal');
         const toggleTags = document.getElementById('toggleTags');
@@ -220,4 +264,101 @@
             }
         });
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const addCommentBtn = document.getElementById('addComment');
+            const newCommentInput = document.getElementById('newComment');
+            const authorInput = document.getElementById('authorName');
+            const commentsList = document.getElementById('commentsList');
+            const commentErrorDiv = document.getElementById('commentError');
+            const authorErrorDiv = document.getElementById('authorError');
+
+            newCommentInput.addEventListener('input', () => {
+                commentErrorDiv.textContent = '';
+                commentErrorDiv.classList.add('hidden');
+            });
+
+            authorInput.addEventListener('input', () => {
+                authorErrorDiv.textContent = '';
+                authorErrorDiv.classList.add('hidden');
+            });
+
+            addCommentBtn.addEventListener('click', async () => {
+                const content = newCommentInput.value.trim();
+                const author = authorInput.value.trim();
+
+                addCommentBtn.disabled = true;
+                addCommentBtn.textContent = 'Posting...';
+
+                try {
+                    const res = await fetch(`{{ route('comments.comment', $issue->id) }}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            body: content,
+                            author_name: author
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        newCommentInput.value = '';
+                        authorInput.value = '';
+                        addCommentBtn.disabled = false;
+                        addCommentBtn.textContent = 'Comment';
+
+                        const div = document.createElement('div');
+                        div.className = 'bg-gray-750 rounded-lg p-4 border border-gray-600';
+                        div.innerHTML = `
+                    <div class="flex space-x-3">
+                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                            ${(data.comment.author_name || 'U').charAt(0).toUpperCase()}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <span class="font-medium text-gray-200">${data.comment.author_name}</span>
+                                <span class="text-gray-400 text-xs">Just now</span>
+                            </div>
+                            <div class="text-gray-100 text-sm">${data.comment.body}</div>
+                        </div>
+                    </div>
+                `;
+                        commentsList.prepend(div);
+
+                    } else if (data.errors) {
+                        if (data.errors.body) {
+                            commentErrorDiv.textContent = data.errors.body.join(' ');
+                            commentErrorDiv.classList.remove('hidden');
+                        }
+                        if (data.errors.author_name) {
+                            authorErrorDiv.textContent = data.errors.author_name.join(' ');
+                            authorErrorDiv.classList.remove('hidden');
+                        }
+                        addCommentBtn.disabled = false;
+                        addCommentBtn.textContent = 'Comment';
+                    } else {
+                        commentErrorDiv.textContent = data.message || 'Error posting comment.';
+                        commentErrorDiv.classList.remove('hidden');
+                        addCommentBtn.disabled = false;
+                        addCommentBtn.textContent = 'Comment';
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    commentErrorDiv.textContent = 'Network or server error.';
+                    commentErrorDiv.classList.remove('hidden');
+                    addCommentBtn.disabled = false;
+                    addCommentBtn.textContent = 'Comment';
+                }
+            });
+        });
+    </script>
+
+
 @endsection
