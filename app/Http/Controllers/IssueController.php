@@ -14,7 +14,7 @@ class IssueController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Issue::with('project')->latest();
+        $query = Issue::with(['tags','comments'])->latest();
 
         if ($request->status) {
             $query->where('status', $request->status);

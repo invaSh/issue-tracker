@@ -13,6 +13,7 @@ class ProjectController extends Controller
     public function index()
     {
         $projects = Project::orderBy('created_at', 'desc')->get();
+
         return view('projects.list', compact('projects'));
     }
 
@@ -59,6 +60,8 @@ class ProjectController extends Controller
      */
     public function show(Project $project)
     {
+        $project->load('issues');
+
         return view('projects.show', compact('project'));
     }
 
