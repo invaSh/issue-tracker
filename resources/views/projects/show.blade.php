@@ -55,4 +55,32 @@
             </form>
         </div>
     </div>
+
+    <div class="max-w-2xl mx-auto mt-8 bg-gray-700 text-gray-100 rounded-xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold mb-4 border-b border-gray-600 pb-2">Project Issues</h2>
+
+        @if ($project->issues->count())
+            <ul class="space-y-3">
+                @foreach ($project->issues as $issue)
+                    <li>
+                        <a href="{{ route('issues.show', $issue->id) }}"
+                            class="block p-3 rounded-lg bg-gray-800 hover:bg-gray-600 transition-colors duration-150">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium text-gray-200">{{ $issue->title }}</span>
+                                <span class="text-sm text-gray-400">{{ ucfirst($issue->status) }}</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-1 mb-3">{{ Str::limit($issue->description, 60) }}</p>
+                            <span
+                                class="py-3 cursor-pointer text-gray-300 rounded-lg font-medium text-sm transition-colors group-hover:text-white whitespace-nowrap group-hover:underline underline-offset-1">
+                                View Profile →
+                            </span>
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        @else
+            <p class="text-gray-400 text-center mt-4">No issues for this project.</p>
+        @endif
+    </div>
+
 @endsection

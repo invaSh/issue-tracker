@@ -70,7 +70,7 @@
 
         </div>
 
-        @if (empty($issues))
+        @if ($issues->isEmpty())
             <p class="text-gray-400 text-sm">No issues. Add a new issue to get started.</p>
         @else
             <table class="w-full text-left border border-gray-600 rounded overflow-hidden text-sm">

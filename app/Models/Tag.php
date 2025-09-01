@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Tag extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'name',
         'color'
@@ -13,6 +15,6 @@ class Tag extends Model
 
     
     public function issues(){
-        return $this->belongsToMany(Tag::class);
+        return $this->belongsToMany(Issue::class);
     }
 }
